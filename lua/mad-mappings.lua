@@ -144,20 +144,45 @@ P.modes = {
 ---@field rhs? string rhs, or it is a group with no functionality if nothing is mapped
 ---@field expr? fun() expression
 ---@field fn? fun() function
---@field maps? ModeFn new mappings
+---@field context? string context after this
+
+---@return Action
+local function a(a)
+    return {
+        modes = a[1],
+        desc = a[2],
+        rhs = a.rhs,
+        expr = a.expr,
+        fn = a.fn,
+        context = a.context,
+    }
+end
 
 ---@type table<string, Action>
 M.actions = {
-    down = { P.modes.nv, "cursor down visual line", expr = expr.down },
-    fast_down = { P.modes.nv, "cursor and view down visual line", expr = expr.fast_down },
-    some_down = { P.modes.nv, "down or fast_down", expr = expr.rapid(expr.down, expr.fast_down) },
-    up = { P.modes.nv, "cursor up visual line", expr = expr.up },
-    fast_up = { P.modes.nv, "cursor and view up visual line", expr = expr.fast_up },
-    some_up = { P.modes.nv, "up or fast_up", expr = expr.rapid(P.up, P.fast_up) },
+    down = a { P.modes.nv, "cursor down visual line", expr = expr.down },
+    fast_down = a { P.modes.nv, "cursor and view down visual line", expr = expr.fast_down },
+    some_down = a { P.modes.nv, "down or fast_down", expr = expr.rapid(expr.down, expr.fast_down) },
+    up = a { P.modes.nv, "cursor up visual line", expr = expr.up },
+    fast_up = a { P.modes.nv, "cursor and view up visual line", expr = expr.fast_up },
+    some_up = a { P.modes.nv, "up or fast_up", expr = expr.rapid(P.up, P.fast_up) },
 }
 
 ---maps go from context to mode to lhs to action
 ---@alias Maps table<string, table<string, table<string, Action>>>
+
+---@param action? Action
+---@param context string
+---@return Action
+function M.context(action, context)
+    if action then
+        action = vim.deepcopy(action)
+    else
+        action = a { P.modes.nv("context ") .. context }
+    end
+    action.context = context
+    return action
+end
 
 -- local test = {
 --     default = {
