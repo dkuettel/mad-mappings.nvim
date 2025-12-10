@@ -73,12 +73,15 @@ function P.rapid_trigger_context(delay, disengage)
     end
 end
 
-P.rapid = P.rapid_trigger_context(50, 1000)
+local expr = {}
 
-function P.down()
+expr.rapid = P.rapid_trigger_context(50, 1000)
+
+function expr.down()
     return "gj" -- treats wrapped lines as they appear
 end
-function P.fast_down()
+
+function expr.fast_down()
     if vim.fn.winline() < vim.fn.winheight(0) / 2 - 1 then
         -- return "j"
         return "gj" -- treats wrapped lines as they appear
@@ -94,12 +97,12 @@ function P.fast_down()
     end
 end
 
-function P.up()
+function expr.up()
     -- return "k"
     return "gk" -- treats wrapped lines as they appear
 end
 
-function P.fast_up()
+function expr.fast_up()
     if vim.fn.winline() > vim.fn.winheight(0) / 2 + 1 then
         return "gk" -- treats wrapped lines as they appear
     else
@@ -114,15 +117,47 @@ function P.fast_up()
     end
 end
 
+---@param mode string
+---@param lhs string
+---@param action Action
+function P.apply_map(mode, lhs, action)
+    if action.rhs then
+        vim.keymap.set(mode, lhs, action.rhs, { desc = action.desc })
+    elseif action.expr then
+        vim.keymap.set(mode, lhs, action.expr, { desc = action.desc, expr = true })
+    elseif action.fn then
+        vim.keymap.set(mode, lhs, action.fn, { desc = action.desc })
+    else
+        assert(false)
+    end
+end
+
+P.modes = {
+    nv = "nv",
+}
+
 --- public interface ------------------------------------------
----
----@class (exact) Map
----@field [1] string supported modes (can be many)
----@field [2] string desc
+
+---@class (exact) Action
+---@field modes "n" | "nv" supported modes
+---@field desc string description
 ---@field rhs? string rhs, or it is a group with no functionality if nothing is mapped
 ---@field expr? fun() expression
 ---@field fn? fun() function
----@field maps? ModeFn new mappings
+--@field maps? ModeFn new mappings
+
+---@type table<string, Action>
+M.actions = {
+    down = { P.modes.nv, "cursor down visual line", expr = expr.down },
+    fast_down = { P.modes.nv, "cursor and view down visual line", expr = expr.fast_down },
+    some_down = { P.modes.nv, "down or fast_down", expr = expr.rapid(expr.down, expr.fast_down) },
+    up = { P.modes.nv, "cursor up visual line", expr = expr.up },
+    fast_up = { P.modes.nv, "cursor and view up visual line", expr = expr.fast_up },
+    some_up = { P.modes.nv, "up or fast_up", expr = expr.rapid(P.up, P.fast_up) },
+}
+
+---maps go from context to mode to lhs to action
+---@alias Maps table<string, table<string, table<string, Action>>>
 
 -- local test = {
 --     default = {
@@ -145,13 +180,17 @@ end
 
 function M.setup() end
 
-M.map = {
-    down = P.down,
-    fast_down = P.fast_down,
-    some_down = P.rapid(P.down, P.fast_down),
-    up = P.up,
-    fast_up = P.fast_up,
-    some_up = P.rapid(P.up, P.fast_up),
-}
+---@param maps Maps
+---@param context string?
+function M.apply(maps, context)
+    maps = maps[context or "default"]
+    vim.Iter(maps):each(function(modes, mmaps)
+        vim.Iter(mmaps):each(function(lhs, action)
+            vim.Iter(modes):each(function(mode)
+                P.apply_map(mode, lhs, action)
+            end)
+        end)
+    end)
+end
 
 return M
