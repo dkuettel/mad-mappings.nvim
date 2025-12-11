@@ -119,20 +119,30 @@ end
 
 ---@param context string
 function P.push_context(context)
+    assert(P.maps.context)
     table.insert(P.contexts, context)
     -- TODO what about context info, like how to visualize it and all
     -- TODO we should also clear mappings
     P.flat_map_maps(P.maps, context, P.apply_map)
-    vim.cmd.redrawstatus()
-    vim.cmd.redrawtabline()
+    vim.cmd.redrawstatus { bang = true }
+    vim.cmd.redrawtabline { bang = true }
 end
 
 function P.pop_context()
     assert(#P.contexts > 1)
     table.remove(P.contexts)
     P.flat_map_maps(P.maps, P.contexts[-1], P.apply_map)
-    vim.cmd.redrawstatus()
-    vim.cmd.redrawtabline()
+    vim.cmd.redrawstatus { bang = true }
+    vim.cmd.redrawtabline { bang = true }
+end
+
+---@param context string
+function P.switch_context(context)
+    assert(P.maps.context)
+    P.contexts[-1] = context
+    P.flat_map_maps(P.maps, context, P.apply_map)
+    vim.cmd.redrawstatus { bang = true }
+    vim.cmd.redrawtabline { bang = true }
 end
 
 ---@param maps Maps
@@ -221,7 +231,10 @@ P.modes = {
     nv = "nv",
 }
 
+---@type Maps
 P.maps = { default = {} }
+
+---@type string[]
 P.contexts = { "default" }
 
 --- public interface ------------------------------------------
