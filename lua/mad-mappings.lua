@@ -287,7 +287,13 @@ local example_maps = { ---@diagnostic disable-line: unused-local
     },
     -- TODO somehow lsp is confused here, it doesnt complain that those actions dont exist
     -- and for the ones that do, it doesnt jump to them
-    windows = { u = M.actions.next_window, e = M.actions.prev_window },
+    windows = {
+        -- TODO this could I think also just be {}, no need for the key?
+        [1] = { color = "yellow" },
+        u = M.actions.next_window,
+        e = M.actions.prev_window,
+        [","] = M.actions.close_window,
+    },
 }
 
 ---@param action Action?
