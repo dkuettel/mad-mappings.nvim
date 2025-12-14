@@ -230,6 +230,7 @@ end
 
 P.modes = {
     nv = "nv",
+    windows = "windows",
 }
 
 ---@type Maps
@@ -263,6 +264,9 @@ local function Action(args)
     }
 end
 
+-- TODO wrap nicer
+local layouts = require("lavish-layouts")
+
 ---@type table<string, Action>
 M.actions = {
     down = Action { P.modes.nv, "cursor down visual line", expr = expr.down },
@@ -271,30 +275,51 @@ M.actions = {
     up = Action { P.modes.nv, "cursor up visual line", expr = expr.up },
     fast_up = Action { P.modes.nv, "cursor and view up visual line", expr = expr.fast_up },
     some_up = Action { P.modes.nv, "up or fast_up", expr = expr.rapid(P.up, P.fast_up) },
+    previous_widnow = Action { { P.modes.nv, P.modes.windows }, "previous window", expr = layouts.previous },
+    next_widnow = Action { { P.modes.nv, P.modes.windows }, "next window", expr = layouts.next },
+    focus_window = Action { P.modes.n, "focus window", expr = layouts.focus },
+    only_window = Action { P.modes.n, "only window", expr = "<cmd>windcmt o<enter>" },
+    close_window = Action { P.modes.n, "close window", expr = layouts.close_window },
+    close_and_delete_window = Action { P.modes.n, "close and delete window", expr = layouts.close_and_delete },
+    switch_main_layout = Action { P.modes.n, "windows main layout", expr = layouts.switch_main },
+    switch_stacked_layout = Action { P.modes.n, "windows stacked layout", expr = layouts.switch_stacked },
 }
 
 ---maps go from context to mode to lhs to action
 ---@alias Maps table<string, table<string, table<string, Action>>>
 
----@type Maps
-local example_maps = { ---@diagnostic disable-line: unused-local
-    default = {
-        nv = {
-            u = M.actions.some_up,
-            e = M.actions.some_down,
-            w = M.context(nil, "windows"),
+---@return Maps
+function M.example_maps()
+    return {
+        default = {
+            nv = {
+                u = M.actions.some_up,
+                e = M.actions.some_down,
+            },
+            n = {
+                wu = M.context(M.actions.prev_window, "windows"),
+                we = M.context(M.actions.next_window, "windows"),
+                ["w."] = M.actions.only_window,
+                ["w,"] = M.actions.close_window,
+                wd = M.actions.close_and_delete_window,
+                wm = M.actions.switch_main,
+                ws = M.actions.switch_stacked,
+            },
         },
-    },
-    -- TODO somehow lsp is confused here, it doesnt complain that those actions dont exist
-    -- and for the ones that do, it doesnt jump to them
-    windows = {
-        -- TODO this could I think also just be {}, no need for the key?
-        [1] = { color = "yellow" },
-        u = M.actions.next_window,
-        e = M.actions.prev_window,
-        [","] = M.actions.close_window,
-    },
-}
+        -- TODO somehow lsp is confused here, it doesnt complain that those actions dont exist
+        -- and for the ones that do, it doesnt jump to them
+        windows = {
+            -- TODO this could I think also just be {}, no need for the key?
+            -- [1] = { color = "yellow" },
+            u = M.actions.next_window,
+            e = M.actions.prev_window,
+            n = M.context(M.actions.focus, "default"),
+            [","] = M.actions.close_window,
+            d = M.actions.close_and_delete,
+            w = M.context(nil, "default"),
+        },
+    }
+end
 
 ---@param action Action?
 ---@param context string
