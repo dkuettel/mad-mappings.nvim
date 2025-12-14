@@ -266,7 +266,6 @@ end
 -- TODO wrap nicer (in exprs)
 local layouts = require("lavish-layouts")
 
----@type table<string, Action>
 M.actions = {
     down = Action { P.modes.nv, "cursor down visual line", expr = expr.down },
     fast_down = Action { P.modes.nv, "cursor and view down visual line", expr = expr.fast_down },
@@ -274,16 +273,18 @@ M.actions = {
     up = Action { P.modes.nv, "cursor up visual line", expr = expr.up },
     fast_up = Action { P.modes.nv, "cursor and view up visual line", expr = expr.fast_up },
     some_up = Action { P.modes.nv, "up or fast_up", expr = expr.rapid(P.up, P.fast_up) },
-    -- windows
-    new_window = Action { P.modes.n, "new window", expr = layouts.new_from_split },
-    previous_widnow = Action { { P.modes.n, P.modes.windows }, "previous window", expr = layouts.previous },
-    next_widnow = Action { { P.modes.n, P.modes.windows }, "next window", expr = layouts.next },
-    focus_window = Action { P.modes.n, "focus window", expr = layouts.focus },
-    only_window = Action { P.modes.n, "only window", expr = "<cmd>windcmd o<enter>" },
-    close_window = Action { P.modes.n, "close window", expr = layouts.close_window },
-    close_and_delete_window = Action { P.modes.n, "close and delete window", expr = layouts.close_and_delete },
-    switch_main_layout = Action { P.modes.n, "windows main layout", expr = layouts.switch_main },
-    switch_stacked_layout = Action { P.modes.n, "windows stacked layout", expr = layouts.switch_stacked },
+
+    windows = {
+        new = Action { P.modes.n, "new window", expr = layouts.new_from_split },
+        next = Action { { P.modes.n, P.modes.windows }, "next window", expr = layouts.next },
+        previous = Action { { P.modes.n, P.modes.windows }, "previous window", expr = layouts.previous },
+        focus = Action { P.modes.n, "focus window", expr = layouts.focus },
+        only = Action { P.modes.n, "only window", expr = "<cmd>windcmd o<enter>" },
+        close = Action { P.modes.n, "close window", expr = layouts.close_window },
+        close_and_delete = Action { P.modes.n, "close and delete window", expr = layouts.close_and_delete },
+        switch_main_layout = Action { P.modes.n, "windows main layout", expr = layouts.switch_main },
+        switch_stacked_layout = Action { P.modes.n, "windows stacked layout", expr = layouts.switch_stacked },
+    },
 }
 
 ---maps go from context to mode to lhs to action
@@ -298,28 +299,27 @@ function M.example_maps()
                 e = M.actions.some_down,
             },
             n = {
-                ww = M.actions.new_from_split,
-                wu = M.context(M.actions.prev_window, "windows"),
-                we = M.context(M.actions.next_window, "windows"),
-                ["w."] = M.actions.only_window,
-                ["w,"] = M.actions.close_window,
-                wd = M.actions.close_and_delete_window,
-                wm = M.actions.switch_main,
-                ws = M.actions.switch_stacked,
+                ww = M.actions.windows.new,
+                wu = M.context(M.actions.windows.prev, "windows"),
+                we = M.context(M.actions.windows.next, "windows"),
+                ["w."] = M.actions.windows.only,
+                ["w,"] = M.actions.windows.close,
+                wd = M.actions.windows.close_and_delete,
+                wm = M.actions.windows.switch_main,
+                ws = M.actions.windows.switch_stacked,
             },
         },
         -- TODO somehow lsp is confused here, it doesnt complain that those actions dont exist
         -- and for the ones that do, it doesnt jump to them
         windows = {
-            -- TODO this could I think also just be {}, no need for the key?
-            -- [1] = { color = "yellow" },
+            -- NOTE we can have a config here
             n = {
-                u = M.actions.next_window,
-                e = M.actions.prev_window,
-                n = M.context(M.actions.focus, "default"),
-                [","] = M.context(M.actions.close_window, "default"),
-                d = M.actions.close_and_delete,
-                w = M.context(M.actions.new_from_split, "default"),
+                u = M.actions.windows.next,
+                e = M.actions.windows.prev,
+                n = M.context(M.actions.windows.focus, "default"),
+                [","] = M.context(M.actions.windows.close, "default"),
+                d = M.actions.windows.close_and_delete,
+                w = M.context(M.actions.windows.new_from_split, "default"),
             },
         },
     }
