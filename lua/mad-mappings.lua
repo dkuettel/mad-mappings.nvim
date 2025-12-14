@@ -279,7 +279,7 @@ M.actions = {
     previous_widnow = Action { { P.modes.n, P.modes.windows }, "previous window", expr = layouts.previous },
     next_widnow = Action { { P.modes.n, P.modes.windows }, "next window", expr = layouts.next },
     focus_window = Action { P.modes.n, "focus window", expr = layouts.focus },
-    only_window = Action { P.modes.n, "only window", expr = "<cmd>windcmt o<enter>" },
+    only_window = Action { P.modes.n, "only window", expr = "<cmd>windcmd o<enter>" },
     close_window = Action { P.modes.n, "close window", expr = layouts.close_window },
     close_and_delete_window = Action { P.modes.n, "close and delete window", expr = layouts.close_and_delete },
     switch_main_layout = Action { P.modes.n, "windows main layout", expr = layouts.switch_main },
