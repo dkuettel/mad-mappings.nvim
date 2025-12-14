@@ -230,7 +230,6 @@ end
 
 P.modes = {
     nv = "nv",
-    windows = "windows",
 }
 
 ---@type Maps
@@ -278,7 +277,7 @@ M.actions = {
     -- windows
     new_window = Action { P.modes.n, "new window", expr = layouts.new_from_split },
     previous_widnow = Action { { P.modes.n, P.modes.windows }, "previous window", expr = layouts.previous },
-    next_widnow = Action { { P.modes.nv, P.modes.windows }, "next window", expr = layouts.next },
+    next_widnow = Action { { P.modes.n, P.modes.windows }, "next window", expr = layouts.next },
     focus_window = Action { P.modes.n, "focus window", expr = layouts.focus },
     only_window = Action { P.modes.n, "only window", expr = "<cmd>windcmt o<enter>" },
     close_window = Action { P.modes.n, "close window", expr = layouts.close_window },
@@ -314,12 +313,14 @@ function M.example_maps()
         windows = {
             -- TODO this could I think also just be {}, no need for the key?
             -- [1] = { color = "yellow" },
-            u = M.actions.next_window,
-            e = M.actions.prev_window,
-            n = M.context(M.actions.focus, "default"),
-            [","] = M.actions.close_window,
-            d = M.actions.close_and_delete,
-            w = M.context(nil, "default"),
+            n = {
+                u = M.actions.next_window,
+                e = M.actions.prev_window,
+                n = M.context(M.actions.focus, "default"),
+                [","] = M.context(M.actions.close_window, "default"),
+                d = M.actions.close_and_delete,
+                w = M.context(M.actions.new_from_split, "default"),
+            },
         },
     }
 end
