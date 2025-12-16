@@ -256,8 +256,6 @@ P.contexts = { "default" }
 -- ah because as a hack i added telescope as a dependency for deving plugins ... but still, we need that, right?
 ---@return mad-mappings.Action
 local function Action(args)
-    -- TODO i dont understand why lsp complains here
-    print(P.contexts)
     return {
         modes = args[1],
         desc = args[2],
