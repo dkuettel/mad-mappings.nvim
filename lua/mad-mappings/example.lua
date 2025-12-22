@@ -8,6 +8,7 @@ return {
 
         return {
             default = {
+                -- fn = function() end,
                 nv = {
                     u = plain.some_up,
                     e = plain.some_down,

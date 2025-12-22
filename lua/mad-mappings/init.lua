@@ -20,8 +20,11 @@ local function validate_action(action)
     return action
 end
 
+-- TODO literal table?
+---@alias mad-mappings.Mode "n"|"nv"|"v"|"i"
+
 ---maps go from context to mode to lhs to action
----@alias mad-mappings.Maps table<string, table<string, table<string, mad-mappings.Action>>>
+---@alias mad-mappings.Maps table<string, table<mad-mappings.Mode, table<string, mad-mappings.Action>>>
 
 local state = {
     ---@type mad-mappings.Maps
@@ -109,12 +112,16 @@ end
 local function flat_map_maps(maps, context, fn)
     maps = maps[context or "default"]
     vim.iter(maps):each(function(modes, mmaps)
-        vim.iter(mmaps):each(function(lhs, action)
-            for i = 1, #modes do
-                local mode = modes:sub(i, i)
-                fn(mode, lhs, action)
-            end
-        end)
+        if modes == "fn" then
+            mmaps()
+        else
+            vim.iter(mmaps):each(function(lhs, action)
+                for i = 1, #modes do
+                    local mode = modes:sub(i, i)
+                    fn(mode, lhs, action)
+                end
+            end)
+        end
     end)
 end
 
